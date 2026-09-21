@@ -1,0 +1,18 @@
+## basically .env equivalent
+## just search the usage if needed to pull values from here into the code
+server:
+  port: ${PORT}
+
+spring:
+  application:
+    name: banking
+  profiles:
+    active: dev
+
+logging:
+  level:
+    root: INFO
+    com.example.banking: DEBUG
+    ## default pattern, can modify
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"

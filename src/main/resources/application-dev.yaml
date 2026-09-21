@@ -1,0 +1,7 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/banking?createDatabaseIfNotExist=true
+    username: root
+    password: pass1234
+  jpa:
+    show-sql: true
