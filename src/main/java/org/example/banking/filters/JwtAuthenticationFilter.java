@@ -40,12 +40,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         bearerToken(request).flatMap(token -> tokenService.parse(token, TokenType.ACCESS))
                 .map(this::authenticationFor)
-                .ifPresent(authentication -> {
+                .ifPresentOrElse(authentication -> {
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
-        });
+        }, () -> logger.info("authorization header verification failed"));
 
-        logger.info("authorization header verification failed");
         filterChain.doFilter(request, response);
     }
 
