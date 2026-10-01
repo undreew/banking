@@ -1,11 +1,15 @@
 package org.example.banking.services;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.example.banking.repositories.AuthRepository;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AuthService {
+
+    private final AuthRepository authRepository;
+    private final AuthService authService;
 
     public void register() {
     }
