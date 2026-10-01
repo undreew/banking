@@ -1,10 +1,12 @@
 package org.example.banking.exceptions;
 
-public class UserNotFoundException extends RuntimeException {
+import org.example.banking.constants.errors.ErrorType;
+
+public class UserNotFoundException extends ApiException {
     public UserNotFoundException() {
-        super("User not found.");
+        super(ErrorType.NOT_FOUND, "User not found.");
     }
     public UserNotFoundException(String message) {
-        super(message);
+        super(ErrorType.NOT_FOUND, message);
     }
 }

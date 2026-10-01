@@ -1,4 +1,4 @@
-package org.example.banking.configs;
+package org.example.banking.constants;
 
 public final class ApiPaths {
 

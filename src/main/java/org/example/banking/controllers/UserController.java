@@ -3,7 +3,7 @@ package org.example.banking.controllers;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
-import org.example.banking.configs.ApiPaths;
+import org.example.banking.constants.ApiPaths;
 import org.example.banking.services.UserService;
 import org.example.banking.dtos.user.UserRequest;
 import org.example.banking.dtos.user.UserResponse;
