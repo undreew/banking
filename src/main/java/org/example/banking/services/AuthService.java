@@ -49,6 +49,10 @@ public class AuthService {
     public AuthenticationResponse login(LoginRequest request) {
         Optional<User> foundUser = authRepository.findByEmail(request.getEmail());
         User user = foundUser.orElseThrow(() -> new UserNotFoundException("User with the given email not found"));
+        
+        if (!user.isEnabled()) {
+            throw new UnauthenticatedException("Account is disabled");
+        }
 
         boolean isMatch = foundUser
                 .map(u -> passwordEncoder.matches(request.getPassword(), u.getPassword()))
@@ -70,6 +74,10 @@ public class AuthService {
         
         User user = userRepository.findById(userId)
                 .orElseThrow(UnauthenticatedException::sessionNotValid);
+        
+        if (!user.isEnabled()) {
+            throw new UnauthenticatedException("Account is disabled");
+        }
         
         UUID successorId = UUID.randomUUID();
 
