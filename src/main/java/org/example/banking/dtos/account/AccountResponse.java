@@ -1,12 +1,16 @@
 package org.example.banking.dtos.account;
 
-import org.example.banking.constants.accounts.AccountStatus;
+import lombok.Data;
+import lombok.AllArgsConstructor;
 import org.example.banking.constants.accounts.AccountType;
+import org.example.banking.constants.accounts.AccountStatus;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+@Data
+@AllArgsConstructor
 public class AccountResponse {
     private UUID id;
     private String accountNumber;

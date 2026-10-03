@@ -48,7 +48,7 @@ public class AuthService {
     @Transactional
     public AuthenticationResponse login(LoginRequest request) {
         Optional<User> foundUser = authRepository.findByEmail(request.getEmail());
-        User user = foundUser.orElseThrow(() -> new UserNotFoundException("User with the given email not found"));
+        User user = foundUser.orElseThrow(UnauthenticatedException::new);
         
         if (!user.isEnabled()) {
             throw new UnauthenticatedException("Account is disabled");

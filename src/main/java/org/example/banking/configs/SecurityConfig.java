@@ -1,9 +1,11 @@
 package org.example.banking.configs;
 
+import jakarta.servlet.DispatcherType;
 import lombok.AllArgsConstructor;
 import org.example.banking.constants.ApiPaths;
 import org.example.banking.constants.accounts.Role;
 import org.example.banking.filters.JwtAuthenticationFilter;
+import org.example.banking.services.TokenService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -29,6 +31,11 @@ public class SecurityConfig {
     }
 
     @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter(TokenService tokenService) {
+        return new JwtAuthenticationFilter(tokenService);
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtFilter, CorsConfigurationSource corsConfigurationSource) throws Exception {
         http.sessionManagement(c -> c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
@@ -37,11 +44,16 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req -> req
                         // add path access rules here
-                        .requestMatchers(HttpMethod.POST, ApiPaths.AUTH + "/register").permitAll()
-                        .requestMatchers(HttpMethod.POST, ApiPaths.AUTH + "/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, ApiPaths.AUTH + "/**").permitAll()
                         .requestMatchers(ApiPaths.USERS, ApiPaths.USERS + "/**").hasRole(Role.ADMIN.name())
-                        .requestMatchers(HttpMethod.POST, ApiPaths.AUTH + "/refresh").permitAll()
-                        .requestMatchers(HttpMethod.POST, ApiPaths.AUTH + "/logout").permitAll()
+                        // account paths
+                        .requestMatchers(HttpMethod.GET, ApiPaths.ACCOUNTS + "/all").hasRole(Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.GET, ApiPaths.ACCOUNTS + "/").hasRole(Role.USER.name())
+                        .requestMatchers(HttpMethod.GET, ApiPaths.ACCOUNTS + "/{id}").authenticated()
+                        .requestMatchers(HttpMethod.POST, ApiPaths.ACCOUNTS + "/create").hasRole(Role.USER.name())
+                        .requestMatchers(HttpMethod.PATCH, ApiPaths.ACCOUNTS + "/{id}/status").hasRole(Role.ADMIN.name())
+                        // returns 404 for non-existent routes
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
