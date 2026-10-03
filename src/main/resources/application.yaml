@@ -9,10 +9,11 @@ spring:
   profiles:
     active: dev
 
-logging:
-  level:
-    root: INFO
-    com.example.banking: DEBUG
-    ## default pattern, can modify
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"
+banking:
+  auth:
+    # NO DEFAULT. A missing BANKING_JWT_SECRET stops the boot
+    # Generate with: openssl rand -base64 48
+    secret: ${BANKING_JWT_SECRET}
+    access-token-ttl: 15m
+    refresh-token-ttl: 7d
+    refresh-cookie: ${BANKING_REFRESH_COOKIE}
