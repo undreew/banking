@@ -1,14 +1,13 @@
 package org.example.banking.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.example.banking.constants.accounts.AccountStatus;
 import org.example.banking.constants.accounts.AccountType;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.generator.EventType;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -23,10 +22,11 @@ import java.util.UUID;
 public class Account {
     @Id
     @Column(name = "id")
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "account_number", unique = true, nullable = false)
+    @Column(name = "account_number", unique = true, nullable = false, updatable = false, length = 15)
     private String accountNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -46,9 +46,11 @@ public class Account {
     @Version
     private Long version; // optimistic locking
 
-    @CreationTimestamp
+    @Generated(event = EventType.INSERT)
+    @Column(name = "created_at", insertable = false, updatable = false)
     private Instant createdAt;
 
-    @UpdateTimestamp
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    @Column(name = "updated_at", insertable = false, updatable = false)
     private Instant updatedAt;
 }
