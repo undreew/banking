@@ -16,7 +16,7 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     List<Account> findAccountsByUserId(@Param("userId") String userId);
 
     // update account status
-    @Modifying
-    @Query(nativeQuery = true, value = "UPDATE accounts SET status = :status WHERE id = :id")
-    void updateAccountStatus(@Param("id") String id, @Param("status") String status);
+    @Modifying(clearAutomatically = true)
+    @Query(nativeQuery = true, value = "UPDATE accounts SET status = :status " + ", version = version + 1 " + " WHERE id = :id AND version = :version")
+    int updateAccountStatus(@Param("id") String id, @Param("status") String status, @Param("version") Long version);
 }
