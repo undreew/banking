@@ -64,10 +64,13 @@ public class AccountController {
     }
 
     @PostMapping("/transfer")
-    public ResponseEntity<Void> transfer() {
+    public ResponseEntity<Void> transfer(
+            @RequestHeader("Idempotency-Key") String idempotencyKey
+    ) {
+        System.out.println(idempotencyKey);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
-    
+
     // ADMIN
     @PatchMapping("/{id}/status")
     public ResponseEntity<Void> updateAccountStatus(
