@@ -7,6 +7,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import jakarta.validation.UnexpectedTypeException;
 import org.example.banking.constants.errors.ErrorType;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import tools.jackson.databind.exc.InvalidFormatException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -55,6 +56,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleUserNotFound(UserNotFoundException exception) {
         return respond(ErrorType.NOT_FOUND, exception.getMessage(), null);
+    }
+    
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ProblemDetail> handleObjectOptimisticLockingFailure(ObjectOptimisticLockingFailureException exception) {
+        return respond(ErrorType.CONFLICT, exception.getMessage(), null);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

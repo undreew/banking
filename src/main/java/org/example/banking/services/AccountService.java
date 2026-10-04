@@ -6,6 +6,7 @@ import org.example.banking.constants.accounts.AccountStatus;
 import org.example.banking.dtos.account.AccountResponse;
 import org.example.banking.dtos.account.CreateAccountRequest;
 import org.example.banking.dtos.account.UpdateAccountStatusRequest;
+import org.example.banking.exceptions.ConflictException;
 import org.example.banking.exceptions.NotFoundException;
 import org.example.banking.mappers.AccountMapper;
 import org.example.banking.repositories.AccountRepository;
@@ -54,7 +55,10 @@ public class AccountService {
     @Transactional
     public void updateAccountStatus(UUID accountId, UpdateAccountStatusRequest request) {
         var account = accountRepository.findById(accountId).orElseThrow(() -> NotFoundException.of("Account", accountId));
-        accountRepository.updateAccountStatus(accountId.toString(), request.getStatus().name());
+        int rowsUpdated = accountRepository.updateAccountStatus(accountId.toString(), request.getStatus().name(), account.getVersion());
+        if (rowsUpdated == 0) {
+            throw new ConflictException("This account was updated by another request please retry.");
+        }
         logger.info("account updated={}", account.getAccountNumber());
     }
 
