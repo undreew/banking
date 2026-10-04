@@ -3,6 +3,9 @@ package org.example.banking.controllers;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.example.banking.dtos.account.UpdateAccountStatusRequest;
+import org.example.banking.dtos.transaction.DepositRequest;
+import org.example.banking.dtos.transaction.WithdrawRequest;
+import org.example.banking.services.TransactionService;
 import org.springframework.http.HttpStatus;
 import org.example.banking.constants.ApiPaths;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +26,7 @@ import java.util.UUID;
 public class AccountController {
 
     private final AccountService accountService;
+    private final TransactionService transactionService;
 
     @PostMapping("/create")
     public ResponseEntity<AccountResponse> createAccount(
@@ -54,12 +58,20 @@ public class AccountController {
     }
 
     @PostMapping("/{id}/deposit")
-    public ResponseEntity<Void> deposit(@PathVariable UUID id) {
+    public ResponseEntity<Void> deposit(
+            @PathVariable UUID id,
+            @Valid @RequestBody DepositRequest request
+    ) {
+        transactionService.depositTransaction(id, request);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @PostMapping("/{id}/withdraw")
-    public ResponseEntity<Void> withdraw(@PathVariable UUID id) {
+    public ResponseEntity<Void> withdraw(
+            @PathVariable UUID id,
+            @Valid @RequestBody WithdrawRequest request
+    ) {
+        transactionService.withdrawTransaction(id, request);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
