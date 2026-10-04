@@ -51,6 +51,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, ApiPaths.ACCOUNTS + "/").hasRole(Role.USER.name())
                         .requestMatchers(HttpMethod.GET, ApiPaths.ACCOUNTS + "/{id}").authenticated()
                         .requestMatchers(HttpMethod.POST, ApiPaths.ACCOUNTS + "/create").hasRole(Role.USER.name())
+                        .requestMatchers(HttpMethod.POST, ApiPaths.ACCOUNTS + "/transfer").hasRole(Role.USER.name())
                         .requestMatchers(HttpMethod.PATCH, ApiPaths.ACCOUNTS + "/{id}/status").hasRole(Role.ADMIN.name())
                         // returns 404 for non-existent routes
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
