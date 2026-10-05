@@ -60,7 +60,7 @@ public class GlobalExceptionHandler {
     
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ResponseEntity<ProblemDetail> handleObjectOptimisticLockingFailure(ObjectOptimisticLockingFailureException exception) {
-        return respond(ErrorType.CONFLICT, exception.getMessage(), null);
+        return respond(ErrorType.CONFLICT, "This resource was updated by another request. Please try again.", null);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
