@@ -3,6 +3,11 @@ package org.example.banking.controllers;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.example.banking.dtos.account.UpdateAccountStatusRequest;
+import org.example.banking.dtos.transaction.DepositRequest;
+import org.example.banking.dtos.transaction.TransactionResponse;
+import org.example.banking.dtos.transaction.TransferRequest;
+import org.example.banking.dtos.transaction.WithdrawRequest;
+import org.example.banking.services.TransactionService;
 import org.springframework.http.HttpStatus;
 import org.example.banking.constants.ApiPaths;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +28,7 @@ import java.util.UUID;
 public class AccountController {
 
     private final AccountService accountService;
+    private final TransactionService transactionService;
 
     @PostMapping("/create")
     public ResponseEntity<AccountResponse> createAccount(
@@ -54,20 +60,37 @@ public class AccountController {
     }
 
     @PostMapping("/{id}/deposit")
-    public ResponseEntity<Void> deposit(@PathVariable UUID id) {
-        return ResponseEntity.status(HttpStatus.OK).build();
+    public ResponseEntity<TransactionResponse> deposit(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedActor actor,
+            @RequestHeader("Idempotency-Key") String idempotencyKey,
+            @Valid @RequestBody DepositRequest request
+    ) {
+        var response = transactionService.depositTransaction(id, actor.id(), idempotencyKey, request);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PostMapping("/{id}/withdraw")
-    public ResponseEntity<Void> withdraw(@PathVariable UUID id) {
-        return ResponseEntity.status(HttpStatus.OK).build();
+    public ResponseEntity<TransactionResponse> withdraw(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedActor actor,
+            @RequestHeader("Idempotency-Key") String idempotencyKey,
+            @Valid @RequestBody WithdrawRequest request
+    ) {
+        var response = transactionService.withdrawTransaction(id, actor.id(), idempotencyKey, request);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PostMapping("/transfer")
-    public ResponseEntity<Void> transfer() {
-        return ResponseEntity.status(HttpStatus.OK).build();
+    public ResponseEntity<TransactionResponse> transfer(
+            @RequestHeader("Idempotency-Key") String idempotencyKey,
+            @AuthenticationPrincipal AuthenticatedActor actor,
+            @Valid @RequestBody TransferRequest request
+    ) {
+        var response = transactionService.transfer(actor.id(), idempotencyKey, request);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
-    
+
     // ADMIN
     @PatchMapping("/{id}/status")
     public ResponseEntity<Void> updateAccountStatus(

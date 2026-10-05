@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.example.banking.constants.accounts.AccountStatus;
 import org.example.banking.constants.accounts.AccountType;
+import org.example.banking.exceptions.ConflictException;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.generator.EventType;
@@ -53,4 +54,29 @@ public class Account {
     @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "updated_at", insertable = false, updatable = false)
     private Instant updatedAt;
+
+    public void deposit(BigDecimal balance) {
+        requireActive();
+        this.setBalance(this.getBalance().add(balance));
+    }
+
+    public void withdraw(BigDecimal balance) {
+        requireActive();
+        if (this.getBalance().compareTo(balance) < 0) {
+            throw new ConflictException("Insufficient balance");
+        }
+        this.setBalance(this.getBalance().subtract(balance));
+    }
+
+    public void requireOwner(UUID id) {
+        if (!this.getOwner().getId().equals(id)) {
+            throw new ConflictException("You don't own this account");
+        }
+    }
+
+    public void requireActive() {
+        if (this.getStatus() != AccountStatus.ACTIVE) {
+            throw new ConflictException("Account is not active");
+        }
+    }
 }
