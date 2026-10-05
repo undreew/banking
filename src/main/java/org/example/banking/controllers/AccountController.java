@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.example.banking.dtos.account.UpdateAccountStatusRequest;
 import org.example.banking.dtos.transaction.DepositRequest;
+import org.example.banking.dtos.transaction.TransactionResponse;
+import org.example.banking.dtos.transaction.TransferRequest;
 import org.example.banking.dtos.transaction.WithdrawRequest;
 import org.example.banking.services.TransactionService;
 import org.springframework.http.HttpStatus;
@@ -58,29 +60,35 @@ public class AccountController {
     }
 
     @PostMapping("/{id}/deposit")
-    public ResponseEntity<Void> deposit(
+    public ResponseEntity<TransactionResponse> deposit(
             @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedActor actor,
+            @RequestHeader("Idempotency-Key") String idempotencyKey,
             @Valid @RequestBody DepositRequest request
     ) {
-        transactionService.depositTransaction(id, request);
-        return ResponseEntity.status(HttpStatus.OK).build();
+        var response = transactionService.depositTransaction(id, actor.id(), idempotencyKey, request);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PostMapping("/{id}/withdraw")
-    public ResponseEntity<Void> withdraw(
+    public ResponseEntity<TransactionResponse> withdraw(
             @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedActor actor,
+            @RequestHeader("Idempotency-Key") String idempotencyKey,
             @Valid @RequestBody WithdrawRequest request
     ) {
-        transactionService.withdrawTransaction(id, request);
-        return ResponseEntity.status(HttpStatus.OK).build();
+        var response = transactionService.withdrawTransaction(id, actor.id(), idempotencyKey, request);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PostMapping("/transfer")
-    public ResponseEntity<Void> transfer(
-            @RequestHeader("Idempotency-Key") String idempotencyKey
+    public ResponseEntity<TransactionResponse> transfer(
+            @RequestHeader("Idempotency-Key") String idempotencyKey,
+            @AuthenticationPrincipal AuthenticatedActor actor,
+            @Valid @RequestBody TransferRequest request
     ) {
-        System.out.println(idempotencyKey);
-        return ResponseEntity.status(HttpStatus.OK).build();
+        var response = transactionService.transfer(actor.id(), idempotencyKey, request);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     // ADMIN

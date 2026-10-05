@@ -16,11 +16,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-@Getter
-@Setter
 @Entity
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
 @Table(name = "transactions")
 public class Transaction {
     @Id
@@ -59,4 +56,27 @@ public class Transaction {
     @Generated(event = EventType.INSERT)
     @Column(name = "created_at", insertable = false, updatable = false)
     private Instant createdAt;
+    
+    protected Transaction() {}
+    
+    public static Transaction create(BigDecimal amount, TransactionType type, TransactionStatus status, String description, Account sourceAccount, Account destinationAccount) {
+        Transaction transaction = new Transaction();
+        
+        transaction.type = type;
+        transaction.amount = amount;
+        transaction.status = status;
+        transaction.description = description;
+        transaction.sourceAccount =  sourceAccount;
+        transaction.destinationAccount = destinationAccount;
+        
+        return transaction;
+    }
+    
+    public void addIdempotencyKey(String key) {
+        idempotencyKey = key;
+    }
+    
+    public void addReversalOfTransaction(Transaction reversal) {
+        reversalOfTransaction = reversal;
+    }
 }
