@@ -14,7 +14,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID>,
     Optional<Transaction> findByIdempotencyKey(String idempotencyKey);
 
 
-    @Modifying(clearAutomatically = true)
+    @Modifying
     @Query(nativeQuery = true, value = "UPDATE transactions SET status = :to" + " WHERE id = :id AND status = :from")
     int transitionStatus(@Param("id") String id, @Param("from") String from, @Param("to") String to);
 }
