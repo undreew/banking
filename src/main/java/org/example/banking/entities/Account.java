@@ -5,6 +5,7 @@ import lombok.*;
 import org.example.banking.constants.accounts.AccountStatus;
 import org.example.banking.constants.accounts.AccountType;
 import org.example.banking.exceptions.ConflictException;
+import org.example.banking.exceptions.UnauthorizedException;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.generator.EventType;
@@ -70,7 +71,7 @@ public class Account {
 
     public void requireOwner(UUID id) {
         if (!this.getOwner().getId().equals(id)) {
-            throw new ConflictException("You don't own this account");
+            throw new UnauthorizedException("You don't own this account");
         }
     }
 

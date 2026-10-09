@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface AccountRepository extends JpaRepository<Account, UUID> {
@@ -14,6 +15,10 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     // find all account from the user id for faster
     @Query(nativeQuery = true, value = "SELECT * FROM accounts WHERE user_id = :userId")
     List<Account> findAccountsByUserId(@Param("userId") String userId);
+    
+    // find one by user id
+    @Query(nativeQuery = true, value = "SELECT * FROM accounts WHERE user_id = :userId AND id = :id")
+    Optional<Account> findAccountByIdAndUserId(@Param("id") String id, @Param("userId") String userId);
 
     // update account status
     @Modifying(clearAutomatically = true)

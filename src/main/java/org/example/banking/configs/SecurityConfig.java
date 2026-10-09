@@ -49,13 +49,13 @@ public class SecurityConfig {
                         // account paths
                         .requestMatchers(HttpMethod.GET, ApiPaths.ACCOUNTS + "/all").hasRole(Role.ADMIN.name())
                         .requestMatchers(HttpMethod.GET, ApiPaths.ACCOUNTS + "/").hasRole(Role.USER.name())
-                        .requestMatchers(HttpMethod.GET, ApiPaths.ACCOUNTS + "/{id}").authenticated()
+                        .requestMatchers(HttpMethod.GET, ApiPaths.ACCOUNTS + "/{id}").hasRole(Role.USER.name())
                         .requestMatchers(HttpMethod.POST, ApiPaths.ACCOUNTS + "/create").hasRole(Role.USER.name())
-                        .requestMatchers(HttpMethod.POST, ApiPaths.ACCOUNTS + "/deposit").hasRole(Role.USER.name())
-                        .requestMatchers(HttpMethod.POST, ApiPaths.ACCOUNTS + "/withdraw").hasRole(Role.USER.name())
+                        .requestMatchers(HttpMethod.POST, ApiPaths.ACCOUNTS + "/{id}/deposit").hasRole(Role.USER.name())
+                        .requestMatchers(HttpMethod.POST, ApiPaths.ACCOUNTS + "/{id}/withdraw").hasRole(Role.USER.name())
                         .requestMatchers(HttpMethod.POST, ApiPaths.ACCOUNTS + "/transfer").hasRole(Role.USER.name())
                         // transactions
-                        .requestMatchers(HttpMethod.POST, ApiPaths.TRANSACTIONS + "/{id}/reverse").hasRole(Role.USER.name())
+                        .requestMatchers(HttpMethod.POST, ApiPaths.TRANSACTIONS + "/{id}/reverse").hasRole(Role.ADMIN.name())
                         .requestMatchers(HttpMethod.PATCH, ApiPaths.ACCOUNTS + "/{id}/status").hasRole(Role.ADMIN.name())
                         // returns 404 for non-existent routes
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()

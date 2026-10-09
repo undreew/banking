@@ -42,8 +42,8 @@ public class AccountService {
         return accounts.stream().map(accountMapper::toView).collect(Collectors.toList());
     }
 
-    public AccountResponse getAccountByAccountId(UUID accountId) {
-        var account = accountRepository.findById(accountId).orElseThrow(() -> NotFoundException.of("Account", accountId));
+    public AccountResponse getAccountByAccountId(UUID accountId, UUID id) {
+        var account = accountRepository.findAccountByIdAndUserId(accountId.toString(), id.toString()).orElseThrow(() -> NotFoundException.of("Account", accountId));
         return accountMapper.toView(account);
     }
 
