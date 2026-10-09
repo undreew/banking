@@ -11,6 +11,7 @@ import org.example.banking.services.TransactionService;
 import org.springframework.http.HttpStatus;
 import org.example.banking.constants.ApiPaths;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.example.banking.services.AccountService;
 import org.example.banking.dtos.account.AccountResponse;
@@ -31,6 +32,7 @@ public class AccountController {
     private final TransactionService transactionService;
 
     @PostMapping("/create")
+    @PreAuthorize("hasRole('USER')")    
     public ResponseEntity<AccountResponse> createAccount(
             @Valid @RequestBody CreateAccountRequest request,
             @AuthenticationPrincipal AuthenticatedActor actor,
@@ -42,24 +44,28 @@ public class AccountController {
     }
 
     @GetMapping("/all")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<AccountResponse>> getAllAccounts() {
         var account = accountService.getAllAccounts();
         return ResponseEntity.status(HttpStatus.OK).body(account);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AccountResponse> getAccountByAccountId(@PathVariable UUID id) {
         var account = accountService.getAccountByAccountId(id);
         return ResponseEntity.status(HttpStatus.OK).body(account);
     }
 
     @GetMapping("/")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<AccountResponse>> getAllAccountsByUserId(@AuthenticationPrincipal AuthenticatedActor actor) {
         var accounts = accountService.getAllAccountsByUserId(actor.id());
         return ResponseEntity.status(HttpStatus.OK).body(accounts);
     }
 
     @PostMapping("/{id}/deposit")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<TransactionResponse> deposit(
             @PathVariable UUID id,
             @AuthenticationPrincipal AuthenticatedActor actor,
@@ -71,6 +77,7 @@ public class AccountController {
     }
 
     @PostMapping("/{id}/withdraw")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<TransactionResponse> withdraw(
             @PathVariable UUID id,
             @AuthenticationPrincipal AuthenticatedActor actor,
@@ -82,6 +89,7 @@ public class AccountController {
     }
 
     @PostMapping("/transfer")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<TransactionResponse> transfer(
             @RequestHeader("Idempotency-Key") String idempotencyKey,
             @AuthenticationPrincipal AuthenticatedActor actor,
@@ -93,6 +101,7 @@ public class AccountController {
 
     // ADMIN
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> updateAccountStatus(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateAccountStatusRequest request

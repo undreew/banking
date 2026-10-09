@@ -2,8 +2,10 @@ package org.example.banking.dtos.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import org.example.banking.constants.accounts.Role;
 import org.example.banking.validators.Lowercase;
 
 @Data
@@ -24,4 +26,7 @@ public class UserRequest {
     @NotBlank(message = "Last Name is required")
     @Size(max = 255, message = "Name must be less than 255 characters")
     private String lastName;
+    
+    @NotNull(message = "Role is required")
+    private Role role;
 }

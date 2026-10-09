@@ -40,7 +40,7 @@ public class AuthService {
     private final UserMapper userMapper;
 
     public UserResponse register(RegisterRequest request) {
-        var user = authRepository.save(authMapper.create(request));
+        var user = authRepository.save(User.create(request.getEmail(), request.getFirstName(), request.getLastName(), passwordEncoder.encode(request.getPassword())));
         logger.info("user registered id={}", user.getId());
         return authMapper.toView(user);
     }
@@ -49,7 +49,7 @@ public class AuthService {
     public AuthenticationResponse login(LoginRequest request) {
         Optional<User> foundUser = authRepository.findByEmail(request.getEmail());
         User user = foundUser.orElseThrow(UnauthenticatedException::new);
-        
+
         if (!user.isEnabled()) {
             throw new UnauthenticatedException("Account is disabled");
         }
@@ -69,16 +69,16 @@ public class AuthService {
     public AuthenticationResponse refreshToken(String presentedToken) {
         Claims claims = tokenService.parse(presentedToken, TokenType.REFRESH)
                 .orElseThrow(UnauthenticatedException::sessionNotValid);
-        
+
         UUID userId = UUID.fromString(claims.getSubject());
-        
+
         User user = userRepository.findById(userId)
                 .orElseThrow(UnauthenticatedException::sessionNotValid);
-        
+
         if (!user.isEnabled()) {
             throw new UnauthenticatedException("Account is disabled");
         }
-        
+
         UUID successorId = UUID.randomUUID();
 
         return issueTokenPair(user, Instant.now(), successorId);
@@ -90,7 +90,7 @@ public class AuthService {
 
     private AuthenticationResponse issueTokenPair(User user, Instant now, UUID refreshTokenId) {
         logger.info("issued token pair for user={} issueAt={}", user.getId(), Date.from(now));
-        
+
         return new AuthenticationResponse(
                 tokenService.issueAccessToken(user, now),
                 tokenService.issueRefreshToken(user.getId(), refreshTokenId, now),

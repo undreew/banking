@@ -24,6 +24,7 @@ public class ErrorUtils {
             case "account_number" ->  "Account number cannot be null.";
             case "users.uk_users_email" -> "This email is already registered.";
             case "users.uk_accounts_account_number" -> "This account number already exists.";
+            case "transactions.uk_transactions_idempotency_key" -> "This transaction already exists.";
             default -> "A record with these details already exists.";
         };
     }

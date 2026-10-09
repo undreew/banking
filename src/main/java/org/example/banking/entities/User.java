@@ -14,10 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Getter
-@Setter
 @Entity
-@NoArgsConstructor
-@AllArgsConstructor
 @Table(name = "users")
 public class User {
     @Id
@@ -55,4 +52,31 @@ public class User {
     @UpdateTimestamp
     @Column(name = "updated_at", insertable = false, updatable = false)
     private Instant updatedAt;
+    
+    protected User() {}
+    
+    public static User create(String email, String firstName, String lastName, String password) {
+        User user = new User();
+        
+        user.email = email;
+        user.password = password;
+        user.lastName = lastName;
+        user.firstName = firstName;
+        user.role = Role.USER;
+        
+        return user;
+    }
+    
+    public void updateDetails(String firstName, String lastName) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+    
+    public void updateRole(Role role) {
+        this.role = role;
+    }
+    
+    public void enableUser(boolean enabled) {
+        this.enabled = enabled;
+    }
 }
