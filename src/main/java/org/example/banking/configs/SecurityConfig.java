@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -24,6 +25,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @Configuration
 @EnableWebSecurity
 @AllArgsConstructor
+// for using controller PreAuthorize()
+@EnableMethodSecurity
 public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -45,18 +48,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(req -> req
                         // add path access rules here
                         .requestMatchers(HttpMethod.POST, ApiPaths.AUTH + "/**").permitAll()
-                        .requestMatchers(ApiPaths.USERS, ApiPaths.USERS + "/**").hasRole(Role.ADMIN.name())
-                        // account paths
-                        .requestMatchers(HttpMethod.GET, ApiPaths.ACCOUNTS + "/all").hasRole(Role.ADMIN.name())
-                        .requestMatchers(HttpMethod.GET, ApiPaths.ACCOUNTS + "/").hasRole(Role.USER.name())
-                        .requestMatchers(HttpMethod.GET, ApiPaths.ACCOUNTS + "/{id}").hasRole(Role.USER.name())
-                        .requestMatchers(HttpMethod.POST, ApiPaths.ACCOUNTS + "/create").hasRole(Role.USER.name())
-                        .requestMatchers(HttpMethod.POST, ApiPaths.ACCOUNTS + "/{id}/deposit").hasRole(Role.USER.name())
-                        .requestMatchers(HttpMethod.POST, ApiPaths.ACCOUNTS + "/{id}/withdraw").hasRole(Role.USER.name())
-                        .requestMatchers(HttpMethod.POST, ApiPaths.ACCOUNTS + "/transfer").hasRole(Role.USER.name())
-                        // transactions
-                        .requestMatchers(HttpMethod.POST, ApiPaths.TRANSACTIONS + "/{id}/reverse").hasRole(Role.ADMIN.name())
-                        .requestMatchers(HttpMethod.PATCH, ApiPaths.ACCOUNTS + "/{id}/status").hasRole(Role.ADMIN.name())
                         // returns 404 for non-existent routes
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .anyRequest().authenticated()

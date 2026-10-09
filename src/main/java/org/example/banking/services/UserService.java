@@ -1,12 +1,10 @@
 package org.example.banking.services;
 
 import lombok.AllArgsConstructor;
+import org.example.banking.dtos.user.*;
 import org.example.banking.entities.User;
 import org.springframework.stereotype.Service;
 import org.example.banking.mappers.UserMapper;
-import org.example.banking.dtos.user.UserRequest;
-import org.example.banking.dtos.user.UserResponse;
-import org.example.banking.dtos.user.UserUpdateRequest;
 import org.example.banking.repositories.UserRepository;
 import org.example.banking.exceptions.UserNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,7 +28,19 @@ public class UserService {
         return userMapper.respond(user);
     }
 
-    public void update(UUID id, UserUpdateRequest request) {
+    public void updateStatus(UUID id, UserUpdateStatusRequest request) {
+        var user = getExistingUser(id);
+        user.enableUser(request.getEnabled());
+        userRepository.save(user);
+    }
+
+    public void updateRole(UUID id, UserUpdateRoleRequest request) {
+        var user = getExistingUser(id);
+        user.updateRole(request.getRole());
+        userRepository.save(user);
+    }
+    
+    public void updateDetails(UUID id, UserUpdateRequest request) {
         var user = getExistingUser(id);
         user.updateDetails(request.getFirstName(), request.getLastName());
         userRepository.save(user);
