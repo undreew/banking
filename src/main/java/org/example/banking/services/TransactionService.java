@@ -1,6 +1,5 @@
 package org.example.banking.services;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.banking.constants.transactions.TransactionStatus;
 import org.example.banking.constants.transactions.TransactionType;
@@ -20,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -44,9 +44,12 @@ public class TransactionService {
 
     @Transactional
     public TransactionResponse reverseTransaction(UUID id, String idempotencyKey, ReverseTransactionRequest request) {
-        checkIdempotency(idempotencyKey);
+        var replay = findReversalReplay(idempotencyKey);
+        if (replay.isPresent()) {
+            return replay.get();
+        }
 
-        var originalTransaction = transactionRepository.findById(id).orElseThrow(() -> NotFoundException.of("Account", id));
+        var originalTransaction = transactionRepository.findById(id).orElseThrow(() -> NotFoundException.of("Transaction", id));
         if (originalTransaction.getType() != TransactionType.TRANSFER) {
             throw new ConflictException("Only transfers can be reversed");
         }
@@ -64,13 +67,14 @@ public class TransactionService {
 
         transactionRepository.saveAndFlush(transaction);
 
-        return transactionMapper.toView(originalTransaction);
+        return transactionMapper.toView(transaction);
     }
 
     @Transactional
-    public TransactionResponse transfer(UUID id, String idempotencyKey, TransferRequest request) {
-        checkIdempotency(idempotencyKey);
-        
+    public TransactionResponse transfer(UUID actorId, String idempotencyKey, TransferRequest request) {
+        var replay = findReplay(idempotencyKey, actorId);
+        if (replay.isPresent()) return replay.get();
+
         UUID requestedSourceId = request.getSourceAccountId();
         UUID requestedDestinationId = request.getDestinationAccountId();
         
@@ -87,7 +91,7 @@ public class TransactionService {
         var sourceAccount = firstAccount.getId().equals(requestedSourceId) ? firstAccount : secondAccount;
         var destinationAccount = firstAccount.getId().equals(requestedSourceId) ? secondAccount : firstAccount;
 
-        sourceAccount.requireOwner(id);
+        sourceAccount.requireOwner(actorId);
 
         sourceAccount.withdraw(request.getAmount());
         destinationAccount.deposit(request.getAmount());
@@ -105,8 +109,9 @@ public class TransactionService {
 
     @Transactional
     public TransactionResponse depositTransaction(UUID id, UUID actorId, String idempotencyKey, DepositRequest request) {
-        checkIdempotency(idempotencyKey);
-        
+        var replay = findReplay(idempotencyKey, actorId);
+        if (replay.isPresent()) return replay.get();
+
         var account = accountRepository.findById(id).orElseThrow(() -> NotFoundException.of("Account", id));
 
         account.requireOwner(actorId);
@@ -127,8 +132,9 @@ public class TransactionService {
 
     @Transactional
     public TransactionResponse withdrawTransaction(UUID id, UUID actorId, String idempotencyKey, WithdrawRequest request) {
-        checkIdempotency(idempotencyKey);
-        
+        var replay = findReplay(idempotencyKey, actorId);
+        if (replay.isPresent()) return replay.get();
+
         var account = accountRepository.findById(id).orElseThrow(() -> NotFoundException.of("Account", id));
 
         account.requireOwner(actorId);
@@ -164,7 +170,22 @@ public class TransactionService {
         accountRepository.save(to);
     }
     
-    private void checkIdempotency(String idempotencyKey) {
-        transactionRepository.findByIdempotencyKey(idempotencyKey).ifPresent(transactionMapper::toView);
+    private Optional<TransactionResponse> findReplay(String idempotencyKey, UUID actorId) {
+        return transactionRepository.findByIdempotencyKey(idempotencyKey).map(existing -> {
+            Account initiator = existing.getSourceAccount() != null ? existing.getSourceAccount() : existing.getDestinationAccount();
+            if (!initiator.getOwner().getId().equals(actorId)) {
+                throw new ConflictException("This idempotency key has already been used");
+            }
+            return transactionMapper.toView(existing);
+        });
+    }
+    
+    private Optional<TransactionResponse> findReversalReplay(String idempotencyKey) {
+        return transactionRepository.findByIdempotencyKey(idempotencyKey).map(existing -> {
+            if (existing.getReversalOfTransaction() == null) {
+                throw new ConflictException("This idempotency key has already been used");
+            }
+            return transactionMapper.toView(existing);
+        });
     }
 }
