@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -43,10 +44,7 @@ public class TransactionService {
 
     @Transactional
     public TransactionResponse reverseTransaction(UUID id, String idempotencyKey, ReverseTransactionRequest request) {
-        var existing = transactionRepository.findByIdempotencyKey(idempotencyKey);
-        if (existing.isPresent()) {
-            throw new ConflictException("Existing reverse transaction");
-        }
+        checkIdempotency(idempotencyKey);
 
         var originalTransaction = transactionRepository.findById(id).orElseThrow(() -> NotFoundException.of("Account", id));
         if (originalTransaction.getType() != TransactionType.TRANSFER) {
@@ -71,8 +69,14 @@ public class TransactionService {
 
     @Transactional
     public TransactionResponse transfer(UUID id, String idempotencyKey, TransferRequest request) {
+        checkIdempotency(idempotencyKey);
+        
         UUID requestedSourceId = request.getSourceAccountId();
         UUID requestedDestinationId = request.getDestinationAccountId();
+        
+        if (requestedSourceId.equals(requestedDestinationId)) {
+            throw new ConflictException("Source ID can't equal Destination ID");
+        }
 
         UUID firstToLoad = requestedSourceId.compareTo(requestedDestinationId) < 0 ? requestedSourceId : requestedDestinationId;
         UUID secondToLoad = firstToLoad.equals(requestedSourceId) ? requestedDestinationId : requestedSourceId;
@@ -101,6 +105,8 @@ public class TransactionService {
 
     @Transactional
     public TransactionResponse depositTransaction(UUID id, UUID actorId, String idempotencyKey, DepositRequest request) {
+        checkIdempotency(idempotencyKey);
+        
         var account = accountRepository.findById(id).orElseThrow(() -> NotFoundException.of("Account", id));
 
         account.requireOwner(actorId);
@@ -121,6 +127,8 @@ public class TransactionService {
 
     @Transactional
     public TransactionResponse withdrawTransaction(UUID id, UUID actorId, String idempotencyKey, WithdrawRequest request) {
+        checkIdempotency(idempotencyKey);
+        
         var account = accountRepository.findById(id).orElseThrow(() -> NotFoundException.of("Account", id));
 
         account.requireOwner(actorId);
@@ -154,5 +162,9 @@ public class TransactionService {
         to.deposit(original.getAmount());
         accountRepository.save(from);
         accountRepository.save(to);
+    }
+    
+    private void checkIdempotency(String idempotencyKey) {
+        transactionRepository.findByIdempotencyKey(idempotencyKey).ifPresent(transactionMapper::toView);
     }
 }

@@ -48,8 +48,8 @@ public class AccountController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AccountResponse> getAccountByAccountId(@PathVariable UUID id) {
-        var account = accountService.getAccountByAccountId(id);
+    public ResponseEntity<AccountResponse> getAccountByAccountId(@PathVariable UUID id, @AuthenticationPrincipal  AuthenticatedActor actor) {
+        var account = accountService.getAccountByAccountId(id, actor.id());
         return ResponseEntity.status(HttpStatus.OK).body(account);
     }
 
