@@ -16,6 +16,7 @@ import org.example.banking.dtos.user.UserResponse;
 import org.example.banking.dtos.auth.LoginRequest;
 import org.example.banking.dtos.auth.TokenResponse;
 import org.example.banking.dtos.auth.RegisterRequest;
+import org.example.banking.validators.WithRateLimit;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.example.banking.dtos.auth.AuthenticationResponse;
 import org.example.banking.exceptions.UnauthenticatedException;
@@ -31,18 +32,21 @@ public class AuthController {
     private final AppConfig appConfig;
 
     @PostMapping("/register")
+    @WithRateLimit(limit = 3)
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request, UriComponentsBuilder uriBuilder) {
         var user = authService.register(request);
         return ResponseEntity.created(uriBuilder.path(ApiPaths.AUTH).build().toUri()).body(user);
     }
 
     @PostMapping("/login")
+    @WithRateLimit(limit = 3)
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
         var response = authService.login(request);
         return withRefreshCookie(response, response.refreshTokenTtl());
     }
 
     @PostMapping("/refresh")
+    @WithRateLimit(limit = 10)
     public ResponseEntity<TokenResponse> refreshToken(HttpServletRequest request) {
         var response = authService.refreshToken(extractCookie(request));
         return withRefreshCookie(response, response.refreshTokenTtl());

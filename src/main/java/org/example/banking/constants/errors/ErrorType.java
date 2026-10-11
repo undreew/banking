@@ -10,6 +10,7 @@ public enum ErrorType {
     NOT_FOUND("not-found", HttpStatus.NOT_FOUND),
     UNAUTHORIZED("unauthorized", HttpStatus.UNAUTHORIZED),
     INTERNAL("internal", HttpStatus.INTERNAL_SERVER_ERROR),
+    RATE_LIMITED("rate-limited", HttpStatus.TOO_MANY_REQUESTS),
     UNAUTHENTICATED("unauthenticated", HttpStatus.UNAUTHORIZED),
     MALFORMED_REQUEST("malformed-request", HttpStatus.BAD_REQUEST),
     VALIDATION_FAILED("validation-failed", HttpStatus.BAD_REQUEST);
