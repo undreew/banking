@@ -11,6 +11,7 @@ import org.example.banking.dtos.transaction.TransactionFilter;
 import org.example.banking.dtos.transaction.TransactionResponse;
 import org.example.banking.dtos.transaction.ReverseTransactionRequest;
 import org.example.banking.services.TransactionService;
+import org.example.banking.validators.WithRateLimit;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -45,6 +46,7 @@ public class TransactionController {
         return ResponseEntity.status(HttpStatus.OK).body(PageResponse.from(transactions));
     }
 
+    @WithRateLimit
     @PostMapping("/{id}/reverse")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TransactionResponse> reverseTransaction(

@@ -1,5 +1,6 @@
 package org.example.banking.exceptions;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.example.banking.utils.ErrorUtils;
@@ -98,6 +99,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleUnexpectedType(UnexpectedTypeException ex) {
         logger.warn("unhandled exception", ex.getMessage());
         return respond(ErrorType.INTERNAL, "An unexpected error occurred", null);
+    }
+
+    @ExceptionHandler(RateLimitException.class)
+    public ResponseEntity<ProblemDetail> handleRateLimitException(RateLimitException rateLimitException, final HttpServletRequest request) {
+        return respond(ErrorType.RATE_LIMITED, rateLimitException.getMessage(), null);
     }
 
     private ResponseEntity<ProblemDetail> respond(ErrorType type, String detail, Map<String, String> fieldErrors) {
