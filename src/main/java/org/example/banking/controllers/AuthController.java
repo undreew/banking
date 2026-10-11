@@ -49,7 +49,11 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
+        var cookie =  extractCookie(request);
+        if (cookie != null) {
+            authService.logout(cookie);
+        }
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, expiredRefreshCookie().toString())
                 .build();
@@ -72,7 +76,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Strict")
-                .path(ApiPaths.AUTH + "/refresh")
+                .path(ApiPaths.AUTH)
                 .maxAge(ttl)
                 .build();
     }
@@ -82,7 +86,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Strict")
-                .path(ApiPaths.AUTH + "/refresh")
+                .path(ApiPaths.AUTH)
                 .maxAge(Duration.ZERO)
                 .build();
     }
