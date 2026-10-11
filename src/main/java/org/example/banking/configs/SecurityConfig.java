@@ -3,9 +3,10 @@ package org.example.banking.configs;
 import jakarta.servlet.DispatcherType;
 import lombok.AllArgsConstructor;
 import org.example.banking.constants.ApiPaths;
-import org.example.banking.constants.accounts.Role;
 import org.example.banking.filters.JwtAuthenticationFilter;
+import org.example.banking.filters.RateLimitFilter;
 import org.example.banking.services.TokenService;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -58,5 +59,13 @@ public class SecurityConfig {
                     ex.accessDeniedHandler((request, response, accessDeniedException) -> response.setStatus(HttpStatus.FORBIDDEN.value()));
                 });
         return http.build();
+    }
+
+    @Bean
+    public FilterRegistrationBean<RateLimitFilter> rateLimitingFilter(RateLimitFilter rateLimitFilter) {
+        FilterRegistrationBean<RateLimitFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(rateLimitFilter);
+        registration.addUrlPatterns("/*");
+        return registration;
     }
 }

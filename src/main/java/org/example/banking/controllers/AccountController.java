@@ -8,6 +8,7 @@ import org.example.banking.dtos.transaction.TransactionResponse;
 import org.example.banking.dtos.transaction.TransferRequest;
 import org.example.banking.dtos.transaction.WithdrawRequest;
 import org.example.banking.services.TransactionService;
+import org.example.banking.validators.WithRateLimit;
 import org.springframework.http.HttpStatus;
 import org.example.banking.constants.ApiPaths;
 import org.springframework.http.ResponseEntity;
@@ -64,6 +65,7 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.OK).body(accounts);
     }
 
+    @WithRateLimit
     @PostMapping("/{id}/deposit")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<TransactionResponse> deposit(
@@ -76,6 +78,7 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @WithRateLimit
     @PostMapping("/{id}/withdraw")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<TransactionResponse> withdraw(
@@ -88,6 +91,7 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @WithRateLimit
     @PostMapping("/transfer")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<TransactionResponse> transfer(
