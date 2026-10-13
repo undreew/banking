@@ -1,0 +1,34 @@
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: banking
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # intentionally no "ports:" — only the app container can reach this on the
+    # compose network, matching the rest of the stack's no-exposed-database stance
+
+  app:
+    build: .
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/banking?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      PORT: ${PORT}
+      BANKING_JWT_SECRET: ${BANKING_JWT_SECRET}
+      BANKING_REFRESH_COOKIE: ${BANKING_REFRESH_COOKIE}
+    ports:
+      - "${PORT}:${PORT}"
+
+volumes:
+  mysql_data:
