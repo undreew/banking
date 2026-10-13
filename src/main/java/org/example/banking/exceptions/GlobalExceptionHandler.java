@@ -8,6 +8,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import jakarta.validation.UnexpectedTypeException;
 import org.example.banking.constants.errors.ErrorType;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import tools.jackson.databind.exc.InvalidFormatException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -62,6 +63,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ResponseEntity<ProblemDetail> handleObjectOptimisticLockingFailure(ObjectOptimisticLockingFailureException exception) {
         return respond(ErrorType.CONFLICT, "This resource was updated by another request. Please try again.", null);
+    }
+
+    // Distinct from the optimistic-lock case above: this is InnoDB's own deadlock
+    // detector killing one side of two transactions racing for row/gap locks in
+    // different orders. Found via ConcurrencyIT firing real concurrent requests
+    // against a real database — without this handler it fell through as a 500,
+    // breaking the documented contract that every conflict is a 409 (spec Section 9).
+    @ExceptionHandler(PessimisticLockingFailureException.class)
+    public ResponseEntity<ProblemDetail> handlePessimisticLockingFailure(PessimisticLockingFailureException exception) {
+        logger.warn("lock contention : {}", exception.getMessage());
+        return respond(ErrorType.CONFLICT, "This resource is being updated by another request. Please try again.", null);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

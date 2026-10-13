@@ -1,0 +1,12 @@
+# Activated via @ActiveProfiles("test") on every Spring-context test.
+# Self-contained on purpose: CI has no .env file (it's gitignored), so tests
+# must not depend on it or on real secrets.
+server:
+  port: 0
+
+banking:
+  auth:
+    secret: "test-only-signing-secret-do-not-use-in-any-real-environment"
+    access-token-ttl: 15m
+    refresh-token-ttl: 7d
+    refresh-cookie: banking_refresh_test
