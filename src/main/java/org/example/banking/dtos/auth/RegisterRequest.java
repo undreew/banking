@@ -14,7 +14,7 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "Password is required")
-    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$", message = "Provide an alphanumeric password")
     @Size(min = 6, max = 25, message = "Password must be between 6 to 25 characters long")
     private String password;
 

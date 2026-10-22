@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 import org.example.banking.constants.ApiPaths;
+import org.example.banking.dtos.auth.AuthenticatedActor;
 import org.example.banking.dtos.user.*;
 import org.example.banking.services.UserService;
 
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -63,5 +65,15 @@ public class UserController {
     public ResponseEntity<?> deleteUser(@PathVariable UUID id) {
         userService.delete(id);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+    
+    @PutMapping("/me")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<UserResponse> updateMyProfile(
+            @Valid @RequestBody UserUpdateRequest request,
+            @AuthenticationPrincipal AuthenticatedActor actor
+            ) {
+        var user =userService.updateMyProfile(request, actor.id());
+        return ResponseEntity.status(HttpStatus.OK).body(user);
     }
 }

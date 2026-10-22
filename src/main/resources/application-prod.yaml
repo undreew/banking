@@ -1,1 +1,10 @@
-## for later
+## for later -> .env.prod
+banking:
+  auth:
+    # NO DEFAULT. A missing BANKING_JWT_SECRET stops the boot
+    # Generate with: openssl rand -base64 48
+    secret: ${BANKING_JWT_SECRET}
+    access-token-ttl: 15m
+    refresh-token-ttl: 7d
+    refresh-cookie: ${BANKING_REFRESH_COOKIE}
+    cookie-secure: true

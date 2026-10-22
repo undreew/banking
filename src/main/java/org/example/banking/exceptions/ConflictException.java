@@ -4,6 +4,6 @@ import org.example.banking.constants.errors.ErrorType;
 
 public class ConflictException extends ApiException {
     public ConflictException(String message) {
-        super(ErrorType.CONFLICT, message);
+        super(ErrorType.CONFLICT, message, false);
     }
 }

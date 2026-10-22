@@ -49,6 +49,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(req -> req
                         // add path access rules here
                         .requestMatchers(HttpMethod.POST, ApiPaths.AUTH + "/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, ApiPaths.AUTH + "/**").authenticated()
                         // returns 404 for non-existent routes
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .anyRequest().authenticated()
