@@ -35,14 +35,14 @@ public class GlobalExceptionHandler {
         } else {
             logger.info("{} : {}", ex.getType().getSlug(), ex.getMessage());
         }
-        return respond(ex.getType(), ex.getMessage(), null);
+        return respond(ex.getType(), ex.getMessage(), null, ex.getRedirect());
     }
     
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ProblemDetail> handleValidationError(MethodArgumentNotValidException exception) {
         var errors = new HashMap<String, String>();
         exception.getBindingResult().getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
-        return respond(ErrorType.VALIDATION_FAILED, "One or more fields are invalid", errors);
+        return respond(ErrorType.VALIDATION_FAILED, "One or more fields are invalid", errors, false);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
@@ -51,17 +51,12 @@ public class GlobalExceptionHandler {
         String message = ErrorUtils.mapConstraintToMessage(constraintName);
 
         logger.warn("constraint violation : {}", exception.getMostSpecificCause().getMessage());
-        return respond(ErrorType.CONFLICT, message, null);
-    }
-
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ProblemDetail> handleUserNotFound(UserNotFoundException exception) {
-        return respond(ErrorType.NOT_FOUND, exception.getMessage(), null);
+        return respond(ErrorType.CONFLICT, message, null, false);
     }
     
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ResponseEntity<ProblemDetail> handleObjectOptimisticLockingFailure(ObjectOptimisticLockingFailureException exception) {
-        return respond(ErrorType.CONFLICT, "This resource was updated by another request. Please try again.", null);
+        return respond(ErrorType.CONFLICT, "This resource was updated by another request. Please try again.", null, false);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -92,23 +87,24 @@ public class GlobalExceptionHandler {
                 detailMessage = String.format("Data type mismatch for field '%s'.", fieldName);
             }
         }
-        return respond(ErrorType.MALFORMED_REQUEST, detailMessage, fieldErrors);
+        return respond(ErrorType.MALFORMED_REQUEST, detailMessage, fieldErrors, false);
     }
 
     @ExceptionHandler(UnexpectedTypeException.class)
     public ResponseEntity<ProblemDetail> handleUnexpectedType(UnexpectedTypeException ex) {
         logger.warn("unhandled exception", ex.getMessage());
-        return respond(ErrorType.INTERNAL, "An unexpected error occurred", null);
+        return respond(ErrorType.INTERNAL, "An unexpected error occurred", null, false);
     }
 
     @ExceptionHandler(RateLimitException.class)
     public ResponseEntity<ProblemDetail> handleRateLimitException(RateLimitException rateLimitException, final HttpServletRequest request) {
-        return respond(ErrorType.RATE_LIMITED, rateLimitException.getMessage(), null);
+        return respond(ErrorType.RATE_LIMITED, rateLimitException.getMessage(), null, rateLimitException.getRedirect());
     }
 
-    private ResponseEntity<ProblemDetail> respond(ErrorType type, String detail, Map<String, String> fieldErrors) {
+    private ResponseEntity<ProblemDetail> respond(ErrorType type, String detail, Map<String, String> fieldErrors, Boolean redirect) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(type.getStatus(), detail);
         problem.setTitle(type.getSlug());
+        problem.setProperty("redirect", redirect);
         problem.setProperty("timestamp", Instant.now().toString());
         if (fieldErrors != null && !fieldErrors.isEmpty()) {
             problem.setProperty("fieldErrors", fieldErrors);

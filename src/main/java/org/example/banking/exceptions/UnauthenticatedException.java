@@ -7,11 +7,11 @@ public class UnauthenticatedException extends ApiException {
     private static final String UNIFORM_MESSAGE = "Invalid email or password";
 
     public UnauthenticatedException() {
-        super(ErrorType.UNAUTHENTICATED, UNIFORM_MESSAGE);
+        super(ErrorType.UNAUTHENTICATED, UNIFORM_MESSAGE, false);
     }
 
     public UnauthenticatedException(String message) {
-        super(ErrorType.UNAUTHENTICATED, message);
+        super(ErrorType.UNAUTHENTICATED, message, false);
     }
 
     public static UnauthenticatedException sessionNotValid() {

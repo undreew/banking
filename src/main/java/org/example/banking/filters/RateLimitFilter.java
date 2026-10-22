@@ -42,6 +42,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         int allowedLimit = -1;
+        boolean redirect = false;
 
         try {
             // Resolve the handler using the explicit mapping engine
@@ -55,6 +56,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 // If the annotation exists, capture its configured limit
                 if (annotation != null) {
                     allowedLimit = annotation.limit();
+                    redirect = annotation.redirect();
                 }
             }
         } catch (Exception e) {
@@ -73,7 +75,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             int currentCount = counter.incrementAndGet();
 
             if (currentCount > allowedLimit) {
-                resolver.resolveException(httpRequest, httpResponse, null, new RateLimitException("Too many requests. Limit is " + allowedLimit + " per minute"));
+                resolver.resolveException(httpRequest, httpResponse, null, new RateLimitException("Too many requests. Limit is " + allowedLimit + " per minute", redirect));
                 return;
             }
         }
