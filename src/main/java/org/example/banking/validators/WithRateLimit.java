@@ -9,4 +9,5 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface WithRateLimit {
     int limit() default 5;
+    boolean redirect() default false;
 }

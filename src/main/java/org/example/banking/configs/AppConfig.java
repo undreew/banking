@@ -22,7 +22,7 @@ public record AppConfig(
 
             @NotNull Duration accessTokenTtl,
             @NotNull Duration refreshTokenTtl,
-
+            @NotNull Boolean cookieSecure,
             @NotNull String refreshCookie) {
 
         /**

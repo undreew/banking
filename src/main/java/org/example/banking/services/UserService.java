@@ -3,11 +3,12 @@ package org.example.banking.services;
 import lombok.AllArgsConstructor;
 import org.example.banking.dtos.user.*;
 import org.example.banking.entities.User;
+import org.example.banking.exceptions.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.example.banking.mappers.UserMapper;
 import org.example.banking.repositories.UserRepository;
-import org.example.banking.exceptions.UserNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -39,7 +40,7 @@ public class UserService {
         user.updateRole(request.getRole());
         userRepository.save(user);
     }
-    
+
     public void updateDetails(UUID id, UserUpdateRequest request) {
         var user = getExistingUser(id);
         user.updateDetails(request.getFirstName(), request.getLastName());
@@ -55,7 +56,15 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
+    @Transactional
+    public UserResponse updateMyProfile(UserUpdateRequest request, UUID actorId) {
+        var user = getExistingUser(actorId);
+        user.updateDetails(request.getFirstName(), request.getLastName());
+        userRepository.save(user);
+        return userMapper.respond(user);
+    }
+
     private User getExistingUser(UUID id) {
-        return userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+        return userRepository.findById(id).orElseThrow(() -> NotFoundException.of("Account", id));
     }
 }

@@ -3,22 +3,18 @@ package org.example.banking.controllers;
 import jakarta.validation.Valid;
 import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
+import org.example.banking.dtos.auth.*;
+import org.springframework.http.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.util.WebUtils;
 import org.example.banking.configs.AppConfig;
 import org.example.banking.constants.ApiPaths;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
 import org.example.banking.services.AuthService;
 import org.springframework.web.bind.annotation.*;
 import org.example.banking.dtos.user.UserResponse;
-import org.example.banking.dtos.auth.LoginRequest;
-import org.example.banking.dtos.auth.TokenResponse;
-import org.example.banking.dtos.auth.RegisterRequest;
 import org.example.banking.validators.WithRateLimit;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.example.banking.dtos.auth.AuthenticationResponse;
 import org.example.banking.exceptions.UnauthenticatedException;
 
 import java.time.Duration;
@@ -30,6 +26,12 @@ public class AuthController {
 
     private final AuthService authService;
     private final AppConfig appConfig;
+    
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getCurrentUser(@AuthenticationPrincipal AuthenticatedActor actor) {
+        var user = authService.getCurrentUser(actor.id());
+        return ResponseEntity.status(HttpStatus.OK).body(user);
+    }
 
     @PostMapping("/register")
     @WithRateLimit(limit = 3)
@@ -78,7 +80,7 @@ public class AuthController {
     private ResponseCookie refreshCookie(String value, Duration ttl) {
         return ResponseCookie.from(appConfig.auth().refreshCookie(), value)
                 .httpOnly(true)
-                .secure(true)
+                .secure(appConfig.auth().cookieSecure())
                 .sameSite("Strict")
                 .path(ApiPaths.AUTH)
                 .maxAge(ttl)
@@ -88,7 +90,7 @@ public class AuthController {
     private ResponseCookie expiredRefreshCookie() {
         return ResponseCookie.from(appConfig.auth().refreshCookie(), "")
                 .httpOnly(true)
-                .secure(true)
+                .secure(appConfig.auth().cookieSecure())
                 .sameSite("Strict")
                 .path(ApiPaths.AUTH)
                 .maxAge(Duration.ZERO)

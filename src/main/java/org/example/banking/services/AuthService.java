@@ -3,8 +3,10 @@ package org.example.banking.services;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.example.banking.constants.auth.TokenType;
+import org.example.banking.dtos.auth.AuthenticatedActor;
 import org.example.banking.entities.RefreshToken;
 import org.example.banking.entities.User;
+import org.example.banking.exceptions.NotFoundException;
 import org.example.banking.mappers.AuthMapper;
 import org.example.banking.mappers.UserMapper;
 import org.example.banking.repositories.RefreshTokenRepository;
@@ -42,6 +44,11 @@ public class AuthService {
     private final TokenService tokenService;
     private final AuthMapper authMapper;
     private final UserMapper userMapper;
+
+    public UserResponse getCurrentUser(UUID actorId) {
+        var user = authRepository.findById(actorId).orElseThrow(() -> NotFoundException.of("Account", actorId));
+        return authMapper.toView(user);
+    }
 
     public UserResponse register(RegisterRequest request) {
         var user = authRepository.save(User.create(request.getEmail(), request.getFirstName(), request.getLastName(), passwordEncoder.encode(request.getPassword())));
