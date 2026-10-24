@@ -5,6 +5,7 @@ import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 import org.example.banking.dtos.auth.*;
 import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.util.WebUtils;
 import org.example.banking.configs.AppConfig;
@@ -26,7 +27,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final AppConfig appConfig;
-    
+
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser(@AuthenticationPrincipal AuthenticatedActor actor) {
         var user = authService.getCurrentUser(actor.id());
@@ -54,9 +55,16 @@ public class AuthController {
         return withRefreshCookie(response, response.refreshTokenTtl());
     }
 
+    @PreAuthorize("hasRole('USER')")
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request, @AuthenticationPrincipal AuthenticatedActor actor) {
+        authService.changePassword(actor.id(), request);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request) {
-        var cookie =  extractCookie(request);
+        var cookie = extractCookie(request);
         if (cookie != null) {
             authService.logout(cookie);
         }
