@@ -1,11 +1,13 @@
 package org.example.banking.services;
 
 import io.jsonwebtoken.Claims;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.banking.constants.auth.TokenType;
-import org.example.banking.dtos.auth.AuthenticatedActor;
+import org.example.banking.dtos.auth.*;
 import org.example.banking.entities.RefreshToken;
 import org.example.banking.entities.User;
+import org.example.banking.exceptions.ConflictException;
 import org.example.banking.exceptions.NotFoundException;
 import org.example.banking.mappers.AuthMapper;
 import org.example.banking.mappers.UserMapper;
@@ -13,10 +15,7 @@ import org.example.banking.repositories.RefreshTokenRepository;
 import org.example.banking.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 import org.example.banking.dtos.user.UserResponse;
-import org.example.banking.dtos.auth.LoginRequest;
-import org.example.banking.dtos.auth.RegisterRequest;
 import org.example.banking.repositories.AuthRepository;
-import org.example.banking.dtos.auth.AuthenticationResponse;
 import org.example.banking.exceptions.UnauthenticatedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -121,6 +120,17 @@ public class AuthService {
                 });
     }
 
+    @Transactional
+    public void changePassword(UUID id, @Valid ChangePasswordRequest request) {
+        var user = authRepository.findById(id).orElseThrow(() -> NotFoundException.of("User", id));
+        var isOldMatch = comparePasswords(request.getOldPassword(), user.getPassword());
+        if (!isOldMatch) {
+            throw new ConflictException("Old passwords don't match");
+        }
+        user.updatePassword(passwordEncoder.encode(request.getNewPassword()));
+        authRepository.save(user);
+    }
+
     private AuthenticationResponse issueTokenPair(User user, Instant now) {
         return issueTokenPair(user, now, UUID.randomUUID());
     }
@@ -139,5 +149,9 @@ public class AuthService {
                 tokenService.getAccessTtl(),
                 tokenService.getRefreshTtl(),
                 userMapper.respond(user));
+    }
+
+    private boolean comparePasswords(String stringPassword, String bcryptPassword) {
+        return passwordEncoder.matches(stringPassword, bcryptPassword);
     }
 }
