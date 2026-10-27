@@ -8,7 +8,7 @@ public enum ErrorType {
 
     CONFLICT("conflict", HttpStatus.CONFLICT),
     NOT_FOUND("not-found", HttpStatus.NOT_FOUND),
-    UNAUTHORIZED("unauthorized", HttpStatus.UNAUTHORIZED),
+    UNAUTHORIZED("unauthorized", HttpStatus.FORBIDDEN),
     INTERNAL("internal", HttpStatus.INTERNAL_SERVER_ERROR),
     RATE_LIMITED("rate-limited", HttpStatus.TOO_MANY_REQUESTS),
     UNAUTHENTICATED("unauthenticated", HttpStatus.UNAUTHORIZED),

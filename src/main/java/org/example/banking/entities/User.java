@@ -8,6 +8,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +43,16 @@ public class User {
     @Column(name = "enabled")
     private boolean enabled = true;
 
+    // lockout bookkeeping, kept in the database so it survives restarts and multiple instances.
+    @Column(name = "failed_login_count", nullable = false)
+    private int failedLoginCount;
+
+    @Column(name = "failed_login_window_start")
+    private Instant failedLoginWindowStart;
+
+    @Column(name = "locked_until")
+    private Instant lockedUntil;
+    
     @OneToMany(mappedBy = "owner", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private List<Account> accounts = new ArrayList<>();
 
@@ -79,8 +90,38 @@ public class User {
     public void enableUser(boolean enabled) {
         this.enabled = enabled;
     }
+
+    public boolean isLocked(Instant now) {
+        return lockedUntil != null && lockedUntil.isAfter(now);
+    }
     
-    public void updatePassword(String password) {
-        this.password = password;
+    public boolean registerFailedLogin(
+            Instant now,
+            int maxFailures,
+            Duration window,
+            Duration lockDuration
+    ) {
+        if (failedLoginWindowStart == null || failedLoginWindowStart.plus(window).isBefore(now)) {
+            failedLoginWindowStart = now;
+            failedLoginCount = 0;
+        }
+
+        failedLoginCount++;
+
+        if (failedLoginCount >= maxFailures) {
+            lockedUntil = now.plus(lockDuration);
+            failedLoginCount = 0;
+            failedLoginWindowStart = null;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public void clearFailedLogins() {
+        failedLoginCount = 0;
+        failedLoginWindowStart = null;
+        lockedUntil = null;
     }
 }

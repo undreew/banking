@@ -17,7 +17,18 @@ banking:
     access-token-ttl: 15m
     refresh-token-ttl: 7d
     refresh-cookie: ${BANKING_REFRESH_COOKIE}
+    
+    access-cookie: ${BANKING_ACCESS_COOKIE} 
+    previous-secret: ${BANKING_JWT_SECRET_PREVIOUS:}    
+    refresh-token-absolute-ttl: 30d
     cookie-secure: false
+    max-sessions: 0    
+    lockout: 
+      failures: 5
+      window: 15m 
+      duration: 15m
+  security:
+      allowed-origins: ${BANKING_ALLOWED_ORIGINS:http://localhost:8081}
     
   cors:
     allowed-origins: http://localhost:8081 # temp for FE endpoint
